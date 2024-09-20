@@ -6,6 +6,10 @@ import Lab3 from "./Lab3";
 export default function Labs() {
   return (
     <div>
+      <h1>Shengmin Chen</h1>
+      <h2>Section 01</h2>
+      <h3>Github Repository:</h3>
+      <a id="wd-github" href="https://github.com/1tou/kanbas-react-web-app.git">https://github.com/1tou/kanbas-react-web-app.git</a><br/>
       <h1>Labs</h1>
       <TOC />
       <Routes>
