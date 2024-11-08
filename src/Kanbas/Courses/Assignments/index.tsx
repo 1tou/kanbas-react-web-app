@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BsGripVertical, BsPlus } from 'react-icons/bs';
 import { FaPlus } from "react-icons/fa6";
 import LessonControlButtons from '../Modules/LessonControlButtons';
@@ -10,10 +10,20 @@ import { MdEditNote } from "react-icons/md";
 import GreenCheckmark from '../Modules/GreenCheckmark';
 import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useParams } from "react-router";
-import { assignments } from "../../Database";
+//import { assignments } from "../../Database";
+import { Link } from 'react-router-dom';
+import { addAssignment, deleteAssignment, updateAssignment }
+  from "./reducer";
+import { useSelector, useDispatch } from "react-redux";
+import { FaTrash } from "react-icons/fa";
+import ProtectedRouteFaculty from '../../Account/ProtectedRouteFaculty';
+import ProtectedRouteNotFaculty from '../../Account/ProtectedRouteNotFaculty';
 
 export default function Assignments() {
   const { cid } = useParams();
+  const [chosenAssignment, setChosenAssignment] = useState<any>({});
+  const { assignments } = useSelector((state: any) => state.assignmentsReducer);
+  const dispatch = useDispatch();
   return (
     <div id="wd-assignments">
       
@@ -26,9 +36,9 @@ export default function Assignments() {
               className="form-control me-1s float-start col-md-6"/>
         </div >
         <div className="">
-          <button id="wd-add-assignment" className="btn btn-lg btn-danger me-2 float-end">
+          <ProtectedRouteFaculty><Link id="wd-add-assignment" to={`/Kanbas/Courses/${cid}/Assignments/${new Date().getTime().toString()}`} className="btn btn-lg btn-danger me-2 float-end">
             <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
-            Assignment</button>
+            Assignment</Link></ProtectedRouteFaculty>
           <button id="wd-add-assignment-group" className="btn btn-lg btn-secondary me-2 float-end">
             <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
             Group</button>
@@ -63,13 +73,16 @@ export default function Assignments() {
                         <MdEditNote className="me-2 fs-3 text-success" />
                       </div>
                       <div className="me-2 fs-6">
-                        <a className="wd-assignment-link"
+                        <ProtectedRouteFaculty><a className="wd-assignment-link"
                           href={`#/Kanbas/Courses/${cid}/Assignments/${assignment._id}`}>
                           <b>{assignment.title}</b>
-                        </a>
+                        </a></ProtectedRouteFaculty>
+                        <ProtectedRouteNotFaculty><b>{assignment.title}</b></ProtectedRouteNotFaculty>
                         <br /><span className="text-danger">Multiple Modules</span> | <b>Not available Until</b> May 6 at 12:00am | <b>Due</b> May 13 at 11:59pm | 100 pts
                       </div>
                       <div className="">
+                        <ProtectedRouteFaculty><FaTrash className="text-danger me-3" onClick={() => setChosenAssignment({ _id: assignment._id, title: assignment.title, course: cid })} 
+                          data-bs-toggle="modal" data-bs-target="#wd-delete-assignment-dialog" /></ProtectedRouteFaculty>
                         <LessonControlButtons />
                       </div>
                     </div>
@@ -81,5 +94,42 @@ export default function Assignments() {
         </ul>
       </div>
 
+      <ModuleEditor dialogTitle="Delete Assignment" assignmentTitle={chosenAssignment.title}
+        deleteAssignment={() => {
+          dispatch(deleteAssignment(chosenAssignment._id));
+        }} />
+      
     </div>
 );}
+
+
+function ModuleEditor({ dialogTitle, assignmentTitle, deleteAssignment }:
+{ dialogTitle: string; assignmentTitle: string; deleteAssignment: () => void; }) {
+  return (
+    
+    <div id="wd-delete-assignment-dialog" className="modal fade" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div className="modal-dialog">
+        <div className="modal-content">
+          <div className="modal-header">
+            <h1 className="modal-title fs-5" id="staticBackdropLabel">
+              {dialogTitle} </h1>
+            <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+
+          <div className="modal-body">
+            <h1 className="modal-title fs-5" id="staticBackdropLabel">
+              {`Are you sure to delete assignment: "${assignmentTitle}" ?`} </h1>
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">
+              Cancel </button>
+            <button onClick={deleteAssignment} type="button" data-bs-dismiss="modal" className="btn btn-danger">
+              OK </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+  );
+}
