@@ -13,8 +13,12 @@ export default function Labs() {
       <div className="container-fluid">
         <h1>Shengmin Chen</h1>
         <h2>Section 01</h2>
-        <h3>Github Repository:</h3>
-        <a id="wd-github" href="https://github.com/1tou/kanbas-react-web-app.git">https://github.com/1tou/kanbas-react-web-app.git</a><br/>
+        <h5>Github Repository ( kanbas-react-web-app ) :</h5>
+        <a id="wd-github-client" href="https://github.com/1tou/kanbas-react-web-app.git"><h5>https://github.com/1tou/kanbas-react-web-app.git</h5></a><br/>
+        <h5>Github Repository ( kanbas-node-server-app ) :</h5>
+        <a id="wd-github-server" href="https://github.com/1tou/kanbas-node-server-app.git"><h5>https://github.com/1tou/kanbas-node-server-app.git</h5></a><br/>
+        <h5> Remote Server Url :</h5>
+        <a id="wd-remote-server" href="https://kanbas-node-server-app-po9w.onrender.com"><h5>https://kanbas-node-server-app-po9w.onrender.com</h5></a><br/>
         <h1>Labs</h1>
         <TOC />
         <Routes>
