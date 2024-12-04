@@ -5,6 +5,8 @@ import { addAssignment, deleteAssignment, updateAssignment }
   from "./reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
+import * as coursesClient from "../client";
+import * as assignmentsClient from "./client";
 
 export default function AssignmentEditor() {
   const { aid } = useParams();
@@ -15,18 +17,29 @@ export default function AssignmentEditor() {
   const navigate = useNavigate();
   const { assignments } = useSelector((state: any) => state.assignmentsReducer);
 
+  const createAssignmentForCourse = async () => {
+    if (!cid) return;
+    const newAssignment = await coursesClient.createAssignmentForCourse(cid, assignment);
+    dispatch(addAssignment(newAssignment));
+  };
+  const saveAssignment = async (assignment: any) => {
+    await assignmentsClient.updateAssignment(assignment);
+    dispatch(updateAssignment(assignment));
+  };
   const fetchAssignment = () => {
     //if (aid === '0') return navigate(`/Kanbas/Courses/${cid}/Assignments/${new Date().getTime().toString()}`);
-    if (assignments.some((assignment: any) => assignment._id === aid))
-      setAssignment(assignments.find((assignment: any) => assignment._id === aid));
+    if ( aid === "create" )
+      setAssignment({ _id: Date.now().toString(), title: "Edit name", course: cid });
     else
-      setAssignment({ _id: aid, title: "Edit name", course: cid });
+      setAssignment(assignments.find((assignment: any) => assignment._id === aid));
   };
   const save = () => {
-    if (assignments.some((assignment: any) => assignment._id === aid))
-      dispatch(updateAssignment(assignment));
+    if (aid === "create")
+      //dispatch(addAssignment(assignment));
+      createAssignmentForCourse();  
     else
-      dispatch(addAssignment(assignment));
+      //dispatch(updateAssignment(assignment));
+      saveAssignment(assignment);
     navigate(`/Kanbas/Courses/${cid}/Assignments`);
   };
   useEffect(() => { fetchAssignment(); }, []);

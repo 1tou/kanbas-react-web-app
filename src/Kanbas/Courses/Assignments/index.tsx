@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BsGripVertical, BsPlus } from 'react-icons/bs';
 import { FaPlus } from "react-icons/fa6";
 import LessonControlButtons from '../Modules/LessonControlButtons';
@@ -12,18 +12,31 @@ import { FaMagnifyingGlass } from "react-icons/fa6";
 import { useParams } from "react-router";
 //import { assignments } from "../../Database";
 import { Link } from 'react-router-dom';
-import { addAssignment, deleteAssignment, updateAssignment }
+import { setAssignments, addAssignment, deleteAssignment, updateAssignment }
   from "./reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { FaTrash } from "react-icons/fa";
 import ProtectedRouteFaculty from '../../Account/ProtectedRouteFaculty';
 import ProtectedRouteNotFaculty from '../../Account/ProtectedRouteNotFaculty';
+import * as coursesClient from "../client";
+import * as assignmentsClient from "./client";
 
 export default function Assignments() {
   const { cid } = useParams();
   const [chosenAssignment, setChosenAssignment] = useState<any>({});
   const { assignments } = useSelector((state: any) => state.assignmentsReducer);
   const dispatch = useDispatch();
+  const removeAssignment = async (assignmentId: string) => {
+    await assignmentsClient.deleteAssignment(assignmentId);
+    dispatch(deleteAssignment(assignmentId));
+  };
+  const fetchAssignments = async () => {
+    const assignments = await coursesClient.findAssignmentsForCourse(cid as string);
+    dispatch(setAssignments(assignments));
+  };
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
   return (
     <div id="wd-assignments">
       
@@ -36,7 +49,7 @@ export default function Assignments() {
               className="form-control me-1s float-start col-md-6"/>
         </div >
         <div className="">
-          <ProtectedRouteFaculty><Link id="wd-add-assignment" to={`/Kanbas/Courses/${cid}/Assignments/${new Date().getTime().toString()}`} className="btn btn-lg btn-danger me-2 float-end">
+          <ProtectedRouteFaculty><Link id="wd-add-assignment" to={`/Kanbas/Courses/${cid}/Assignments/create`} className="btn btn-lg btn-danger me-2 float-end">
             <FaPlus className="position-relative me-2" style={{ bottom: "1px" }} />
             Assignment</Link></ProtectedRouteFaculty>
           <button id="wd-add-assignment-group" className="btn btn-lg btn-secondary me-2 float-end">
@@ -64,7 +77,7 @@ export default function Assignments() {
             <ul className="wd-assignment-list list-group rounded-0">
               
               {assignments
-                .filter((assignment: any) => assignment.course === cid)
+                //.filter((assignment: any) => assignment.course === cid)
                 .map((assignment: any) => (
                   <li className="wd-assignment-list-item list-group-item p-3 ps-1">
                     <div className="d-flex justify-content-between">
@@ -94,16 +107,16 @@ export default function Assignments() {
         </ul>
       </div>
 
-      <ModuleEditor dialogTitle="Delete Assignment" assignmentTitle={chosenAssignment.title}
+      <AssignmentDeleter dialogTitle="Delete Assignment" assignmentTitle={chosenAssignment.title}
         deleteAssignment={() => {
-          dispatch(deleteAssignment(chosenAssignment._id));
+          removeAssignment(chosenAssignment._id);
         }} />
       
     </div>
 );}
 
 
-function ModuleEditor({ dialogTitle, assignmentTitle, deleteAssignment }:
+function AssignmentDeleter({ dialogTitle, assignmentTitle, deleteAssignment }:
 { dialogTitle: string; assignmentTitle: string; deleteAssignment: () => void; }) {
   return (
     
