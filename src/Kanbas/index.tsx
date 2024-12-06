@@ -14,11 +14,12 @@ import * as courseClient from "./Courses/client";
 
 export default function Kanbas() {
   const [courses, setCourses] = useState<any[]>([]);
+  const [enrolling, setEnrolling] = useState<boolean>(false);
   const [allCourses, setAllCourses] = useState<any[]>([]);
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const fetchCourses = async () => {
     try {
-      const courses = await userClient.findMyCourses();
+      const courses = await courseClient.fetchAllCourses();
       setCourses(courses);
     } catch (error) {
       console.error(error);
@@ -27,6 +28,7 @@ export default function Kanbas() {
   const fetchAllCourses = async () => {
     try {
       const allCourses = await courseClient.fetchAllCourses();
+      setCourses(courses);
       setAllCourses(allCourses);
     } catch (error) {
       console.error(error);
@@ -40,19 +42,21 @@ export default function Kanbas() {
   }, []);
 
   const [course, setCourse] = useState<any>({
-    _id: "1234", name: "New Course", number: "New Number",
-    startDate: "2023-09-10", endDate: "2023-12-15", description: "New Description",
+    _id: "1234", 
+    name: "New Course", number: "New Number",
+    startDate: "2023-09-10", endDate: "2023-12-15", 
+    //credits : 4,
+    description: "New Description",
   });
   const addNewCourse = async () => {
-    const newCourse = await userClient.createCourse(course);
-    //setCourses([...courses, { ...course, _id: new Date().getTime().toString() }]);
-    setCourses([ ...courses, newCourse ]);
-    setAllCourses([ ...allCourses, newCourse ]);
+    // const newCourse = await userClient.createCourse(course);
+    const newCourse = await courseClient.createCourse(course);
+    setCourses([...courses, newCourse]);
   };
   const deleteCourse = async (courseId: string) => {
     const status = await courseClient.deleteCourse(courseId);
     setCourses(courses.filter((course) => course._id !== courseId));
-    setAllCourses(allCourses.filter((course) => course._id !== courseId));
+    //setAllCourses(allCourses.filter((course) => course._id !== courseId));
   };
   const updateCourse = async () => {
     await courseClient.updateCourse(course);

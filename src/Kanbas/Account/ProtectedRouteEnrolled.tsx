@@ -4,7 +4,7 @@ export default function ProtectedRouteEnrolled({ children, courseId }: { childre
   const { currentUser } = useSelector((state: any) => state.accountReducer);
   const { enrollments } = useSelector((state: any) => state.enrollmentsReducer);
   if (currentUser) {
-    if(enrollments.some( (enrollment: any) => enrollment.user === currentUser._id && enrollment.course === courseId) )
+    if(currentUser.role === "ADMIN" || enrollments.some( (enrollment: any) => enrollment.user === currentUser._id && enrollment.course === courseId) )
       return children;
     else
       return null;
