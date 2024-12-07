@@ -91,7 +91,7 @@ export default function Assignments() {
                           <b>{assignment.title}</b>
                         </a></ProtectedRouteFaculty>
                         <ProtectedRouteNotFaculty><b>{assignment.title}</b></ProtectedRouteNotFaculty>
-                        <br /><span className="text-danger">Multiple Modules</span> | <b>Not available Until</b> May 6 at 12:00am | <b>Due</b> May 13 at 11:59pm | 100 pts
+                        <br /><span className="text-danger">Multiple Modules</span> | <b>Not available Until</b> { assignment?.availablefrom ? assignment.availablefrom : "2024-05-06" } | <b>Due</b> { assignment?.duedate ? assignment.duedate : "2024-05-13" } | { assignment?.points ? assignment.points : 100 } pts
                       </div>
                       <div className="">
                         <ProtectedRouteFaculty><FaTrash className="text-danger me-3" onClick={() => setChosenAssignment({ _id: assignment._id, title: assignment.title, course: cid })} 
