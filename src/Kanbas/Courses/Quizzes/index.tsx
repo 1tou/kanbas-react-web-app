@@ -65,6 +65,22 @@ export default function Quizzes() {
         return (<span><b>Not available until </b>{quiz?.availableFrom}</span>);
     }
   };
+
+  
+  const [popupVisibleId, setPopupVisibleId] = useState(null); // Store the id of current window
+  const togglePopup = (id: any) => {
+    if (popupVisibleId === id) {
+      setPopupVisibleId(null); // click the button to close the window
+    } else {
+      setPopupVisibleId(id); // Set the id of current popup window
+    }
+  };
+
+  const closePopup = () => {
+    setPopupVisibleId(null); // close the popup window
+  };
+
+
   useEffect(() => {
     //fetchQuizzes();
     fetchQuizzesForUser();
@@ -127,20 +143,44 @@ export default function Quizzes() {
                         </div>
                       </div>
                       <div className="">
-                        <ProtectedRouteFaculty>
-                          <FaTrash className="text-danger me-3" onClick={() => setChosenQuiz({ _id: quiz._id, title: quiz.title, course: cid })} 
-                            data-bs-toggle="modal" data-bs-target="#wd-delete-quiz-dialog" />
+                        
                           
-                          <MdEditNote className="me-2 fs-2 text-success" onClick={ () => { navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`); } }/>
-                          
-                          { !quiz?.published && (<MdPublish className="fs-3 me-4 text-primary" onClick={ () => { saveQuiz({ ...quiz, published: true }) } } />)}
-                          { quiz?.published && (<MdDownload className="fs-3 me-4 text-danger" onClick={ () => { saveQuiz({ ...quiz, published: false }) } }/>)}
-                        </ProtectedRouteFaculty>
+                        
                         
                         { quiz?.published && (<MdCheckCircle className="fs-4 me-1 text-success" />)}
                         { !quiz?.published && (<MdNotInterested className="fs-4 me-1 text-danger" />)}
                         
-                        <IoEllipsisVertical className="fs-4" onClick={ () => {} } />
+                        
+                        <ProtectedRouteNotFaculty><IoEllipsisVertical className="fs-4" /></ProtectedRouteNotFaculty>
+                        <ProtectedRouteFaculty><IoEllipsisVertical className="fs-4" onClick={() => togglePopup(quiz._id)} /></ProtectedRouteFaculty>
+
+                        {/* To deternmine if there's a popup window */}
+                        {popupVisibleId === quiz._id && (
+                          <div
+                            style={{
+                              position: "absolute",
+                              backgroundColor: "#fff",
+                              border: "1px solid #ddd",
+                              padding: "10px",
+                              marginTop: "5px",
+                              zIndex: 1000,
+                              boxShadow: "0 4px 8px rgba(0, 0, 0, 0.1)",
+                              borderRadius: "8px",
+                            }}
+                          >
+                            <div className="d-flex flex-column justify-content-around">
+                              <FaTrash className="text-danger me-3 mb-2" onClick={() => setChosenQuiz({ _id: quiz._id, title: quiz.title, course: cid })} 
+                                data-bs-toggle="modal" data-bs-target="#wd-delete-quiz-dialog" />
+                              
+                              <MdEditNote className="me-2 fs-2 mb-2 text-success" onClick={ () => { navigate(`/Kanbas/Courses/${cid}/Quizzes/${quiz._id}`); } }/>
+                              
+                              { !quiz?.published && (<MdPublish className="fs-3 me-4 mb-2 text-primary" onClick={ () => { saveQuiz({ ...quiz, published: true }) } } />)}
+                              { quiz?.published && (<MdDownload className="fs-3 me-4 mb-2 text-danger" onClick={ () => { saveQuiz({ ...quiz, published: false }) } }/>)}
+                            </div>
+                            <button className="btn btn-outline-secondary btn-sm rounded-pill" onClick={closePopup}>Close</button>
+                          </div>
+                        )}
+
                       </div>
                     </div>
                   </li>
