@@ -12,6 +12,9 @@ import * as client from "./client";
 import Quizzes from "./Quizzes";
 import QuizEditor from "./Quizzes/QuizEditor";
 import QuizDetails from "./Quizzes/QuizDetails";
+import Questions from "./Quizzes/Questions";
+import QuestionEditor from "./Quizzes/Questions/QuestionEditor";
+import QuizPreview from "./Quizzes/QuizPreview";
 
 export default function Courses({ courses }: { courses: any[]; }) {
   const { cid } = useParams();
@@ -50,7 +53,11 @@ export default function Courses({ courses }: { courses: any[]; }) {
           <Route path="Quizzes" element={<Quizzes />} />
           <Route path="Quizzes/:quizid" element={<QuizDetails />} />
           <Route path="Quizzes/:quizid/Details" element={<QuizDetails />} />
+          <Route path="Quizzes/:quizid/Preview" element={<QuizPreview />} />
+          <Route path="Quizzes/:quizid/Preview/Questions" element={<QuizPreview />} />
           <Route path="Quizzes/:quizid/Editor" element={<QuizEditor />} />
+          <Route path="Quizzes/:quizid/Questions" element={<Questions />} />
+          <Route path="Quizzes/:quizid/Questions/:questionid" element={<QuestionEditor />} />
           
         </Routes>
         </div></div>
@@ -59,6 +66,6 @@ export default function Courses({ courses }: { courses: any[]; }) {
 
 
 /*
-<Route path="Quizzes/:quizid/Questions" element={<Questions />} />
-<Route path="Quizzes/:quizid/Questions/:questionid" element={<QuestionEditor />} />
+
+
 */

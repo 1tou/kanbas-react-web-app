@@ -7,28 +7,46 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import * as coursesClient from "../client";
 import * as quizzesClient from "./client";
+import * as userClient from "../../Account/client";
+import ProtectedRouteFaculty from "../../Account/ProtectedRouteFaculty";
+import ProtectedRouteNotFaculty from "../../Account/ProtectedRouteNotFaculty";
 
 export default function QuizDetails() {
   const { quizid } = useParams();
   const { cid } = useParams();
   const [quiz, setQuiz] = useState<any>({});
   const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const [previousQuizGrade, setPreviousQuizGrade] = useState<any>({});
+  const { currentUser } = useSelector((state: any) => state.accountReducer);
 
   const fetchQuiz = () => {
     setQuiz(quizzes.find((quiz: any) => quiz._id === quizid));
   };
 
-  useEffect(() => { fetchQuiz(); }, []);
+  const fetchPreviousQuizGrade = async () => {
+    const previousQuizGrade = await userClient.findQuizGradeForUser(currentUser._id, quizid as string);
+    if(previousQuizGrade)
+        setPreviousQuizGrade(previousQuizGrade);
+  };
+
+  useEffect(() => { fetchQuiz(); fetchPreviousQuizGrade(); }, []);
 
   return (
     <div id="wd-quizz-details" className="container">
 
-      <div className="mb-5 d-flex justify-content-center">
-        <Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
-            Preview</Link>
-        <Link id="wd-edit-btn" to={`/Kanbas/Courses/${cid}/Quizzes/:quizid/Editor`} className="btn btn-secondary me-1 float-end">
+      <ProtectedRouteFaculty><div className="mb-5 d-flex justify-content-center">
+        { (!previousQuizGrade || (previousQuizGrade && previousQuizGrade?.attempts < quiz.multipleAttempts)) && (<Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
+            Preview</Link>)}
+        <Link id="wd-edit-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Editor`} className="btn btn-secondary me-1 float-end">
             Edit</Link>
-      </div><hr />
+      </div><hr /></ProtectedRouteFaculty>
+
+      <ProtectedRouteNotFaculty><div className="mb-5 d-flex justify-content-center">
+        { (!previousQuizGrade || (previousQuizGrade && previousQuizGrade?.attempts < quiz.multipleAttempts)) && (<Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
+            Take</Link>)}
+        <Link id="wd-edit-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Editor`} className="btn btn-secondary me-1 float-end">
+            Edit</Link>
+      </div><hr /></ProtectedRouteNotFaculty>
       
       <div className="mb-4">
         <h2><b>{quiz.title}</b></h2>
@@ -102,6 +120,25 @@ export default function QuizDetails() {
       <div className="mb-5 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Lock Questions After Answering</b></div>
         <div>{quiz.type}</div>
+      </div><br/>
+
+      <div>
+
+        <div className="mb-2 fs-5 d-flex justify-content-center text-danger">
+          <div className="me-3"><b>Last Taken Time:</b></div>
+          <div>{previousQuizGrade && previousQuizGrade?.lastTakenTime ? previousQuizGrade?.lastTakenTime : ""}</div>
+        </div>
+
+        <div className="mb-2 fs-5 d-flex justify-content-center text-danger">
+          <div className="me-3"><b>Latest Score:</b></div>
+          <div>{previousQuizGrade && previousQuizGrade?.totalGrade ? previousQuizGrade?.totalGrade : ""}</div>
+        </div>
+
+        <div className="mb-2 fs-5 d-flex justify-content-center text-danger">
+          <div className="me-3"><b>Attempts:</b></div>
+          <div>{previousQuizGrade && previousQuizGrade?.attempts ? previousQuizGrade?.attempts : ""}</div>
+        </div>
+
       </div><br/>
 
       <div className="mb-2 fs-5 d-flex justify-content-between">

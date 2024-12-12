@@ -1,4 +1,4 @@
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 //import { quizzes } from "../../Database";
 import { Link, useNavigate } from "react-router-dom";
 import { addQuiz, deleteQuiz, updateQuiz }
@@ -7,10 +7,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import * as coursesClient from "../client";
 import * as quizzesClient from "./client";
+import Editor from 'react-simple-wysiwyg';
 
 export default function QuizEditor() {
   const { quizid } = useParams();
   const { cid } = useParams();
+  const { pathname } = useLocation();
   //const quiz = quizzes.find((quiz: any) => quiz._id === quizid);
   const [quiz, setQuiz] = useState<any>({});
   const dispatch = useDispatch();
@@ -40,27 +42,45 @@ export default function QuizEditor() {
     else
       //dispatch(updateQuiz(quiz));
       saveQuiz(quiz);
-    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    if(quizid==="create")
+      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+    else
+      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+      //navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Details`);
   };
   useEffect(() => { fetchQuiz(); }, []);
 
   return (
     <div id="wd-quizzes-editor" className="container">
 
+      <div className="d-flex fs-5">
+        <Link to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Editor`} className={`me-3 list-group-item border border-0
+              ${pathname.includes("Editor") ? "active" : "text-danger"}`}>
+          <br />
+          Details
+        </Link>
+        { quizid !== "create" && (<Link to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Questions`} className={`list-group-item border border-0
+              ${pathname.includes("Questions") ? "active" : "text-danger"}`}>
+          <br />
+          Questions
+        </Link>)}
+      </div><br /><hr/>
 
       <div className="mb-3">
-        <label htmlFor="wd-name" className="form-label">
-          Quiz Name</label>
-        <textarea className="form-control" id="wd-name" value={ quiz && quiz.title } onChange={(e) => setQuiz({ ...quiz, title: e.target.value }) }
+        <label htmlFor="wd-title" className="form-label">
+          Quiz Title</label>
+        <textarea className="form-control" id="wd-title" value={ quiz && quiz.title } onChange={(e) => setQuiz({ ...quiz, title: e.target.value }) }
                   rows={3}></textarea>
       </div>
 
       <div className="mb-3">
-      <textarea id="wd-description" className="form-control" value={ quiz?.description ? quiz.description : "Edit description" } cols={45} rows={10} onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } >
-        The quiz is available online
-        Submit a link to the landing page of your Web application running on Netlify.
-        The landing page should include the following: Your full name and section Links to each of the lab quizzes Link to the Kanbas application Links to all relevant source code repositories The Kanbas application should include a link to navigate back to the landing page.
-      </textarea>
+        <textarea id="wd-description" className="form-control" value={ quiz?.description ? quiz.description : "Edit description" } cols={45} rows={10} onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } >
+          The quiz is available online
+          Submit a link to the landing page of your Web application running on Netlify.
+          The landing page should include the following: Your full name and section Links to each of the lab quizzes Link to the Kanbas application Links to all relevant source code repositories The Kanbas application should include a link to navigate back to the landing page.
+        </textarea>
+        <Editor id="wd-description" value={quiz?.description ? quiz.description : "Edit description"} 
+          onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } />
       </div>
 
       <div>
@@ -69,20 +89,29 @@ export default function QuizEditor() {
           <label htmlFor="wd-points" className="col-sm-2 col-form-label">
             Points</label>
           <div className="col-sm-10 col-md-4">
-            <input id="wd-points" className="form-control" value={ quiz?.points ? quiz.points : 100 } onChange={(e) => setQuiz({ ...quiz, points: e.target.value })} />
+            <input id="wd-points" className="form-control" value={ quiz?.points } onChange={(e) => setQuiz({ ...quiz, points: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="mb-3 row">
+          <label htmlFor="wd-attempts" className="col-sm-2 col-form-label">
+            Multiple Attempts</label>
+          <div className="col-sm-10 col-md-4">
+            <input id="wd-attempts" className="form-control" value={ quiz?.multipleAttempts } onChange={(e) => setQuiz({ ...quiz, multipleAttempts: e.target.value })} />
           </div>
         </div>
 
         {/* Complete on your own */}
         <div className="mb-3 row">
           <label htmlFor="wd-group" className="col-sm-2 col-form-label">
-            Quiz Group</label>
+            Assignment Group</label>
           <div className="col-sm-10 col-md-4">
             <select id="wd-group" className="form-select" value={ quiz?.group ? quiz.group : "QUIZZES" } onChange={(e) => setQuiz({ ...quiz, group: e.target.value })} >
-              <option value="1">1</option>
+              <option value="Exams">Exams</option>
               <option selected value="QUIZZES">
                 QUIZZES</option>
-              <option value="2">2</option>
+              <option value="Assignments">Assignments</option>
+              <option value="Project">Project</option>
             </select>
           </div>
         </div>
@@ -187,8 +216,9 @@ export default function QuizEditor() {
       <hr />
       <button id="wd-save-btn" onClick={save} className="btn btn-danger me-1 float-end">
         Save</button>
-      <Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
-        Cancel</Link>
-
+      { quizid !== "create" && (<Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
+        Cancel</Link>)}
+      { quizid === "create" && (<Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
+        Cancel</Link>)}
     </div>
 );}
