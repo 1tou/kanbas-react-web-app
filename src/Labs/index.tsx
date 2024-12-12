@@ -18,7 +18,7 @@ export default function Labs() {
         <h5>Github Repository ( kanbas-node-server-app ) :</h5>
         <a id="wd-github-server" href="https://github.com/1tou/kanbas-node-server-app.git"><h5>https://github.com/1tou/kanbas-node-server-app.git</h5></a><br/>
         <h5> Remote Server Url :</h5>
-        <a id="wd-remote-server" href="https://kanbas-node-server-app-project-gtyf.onrender.com"><h5>https://kanbas-node-server-app-mongodb-vl38.onrender.com</h5></a><br/>
+        <a id="wd-remote-server" href="https://kanbas-node-server-app-project-gtyf.onrender.com"><h5>https://kanbas-node-server-app-project-gtyf.onrender.com</h5></a><br/>
         <h1>Labs</h1>
         <TOC />
         <Routes>
