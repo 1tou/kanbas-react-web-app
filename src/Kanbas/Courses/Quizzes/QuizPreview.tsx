@@ -9,6 +9,10 @@ import * as userClient from "../../Account/client";
 import { FaPlus, FaTrash } from "react-icons/fa";
 import { setQuestions, addQuestion, deleteQuestion, updateQuestion }
   from "./Questions/reducer";
+import { addQuiz, deleteQuiz, updateQuiz }
+  from "./reducer";
+import GreenCheckmark from "../Modules/GreenCheckmark";
+import RedXMark from "../Modules/RedXMark";
 
 export default function QuizPreview() {
   const { quizid } = useParams();
@@ -21,7 +25,12 @@ export default function QuizPreview() {
   const [questionIndex, setQuestionIndex] = useState<any>({});
   const [previousQuizGrade, setPreviousQuizGrade] = useState<any>({});
   const [newAnswers, setNewAnswers] = useState<any[]>([]);
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const [quiz, setQuiz] = useState<any>({});
 
+  const fetchQuiz = () => {
+    setQuiz(quizzes.find((quiz: any) => quiz._id === quizid));
+  };
   const fetchQuestions = async () => {
     const questions = await quizzesClient.findQuestionsForQuiz(quizid as string);
     dispatch(setQuestions(questions));
@@ -32,6 +41,8 @@ export default function QuizPreview() {
     const previousQuizGrade = await userClient.findQuizGradeForUser(currentUser._id, quizid as string);
     if(previousQuizGrade)
         setPreviousQuizGrade(previousQuizGrade);
+    else
+        setPreviousQuizGrade({});
   };
   const fetchPreviousAnswerForQuestion = (questionId : any) => {
     const previousQuestionGrades = previousQuizGrade && previousQuizGrade?.questionGrades;
@@ -54,11 +65,16 @@ export default function QuizPreview() {
     if(newQuizGrade)
         setPreviousQuizGrade(newQuizGrade);
     setNewAnswers([]);
+    const curQuiz = quizzes.find((quiz: any) => quiz._id === quizid);
+    let latestScore = newQuizGrade.totalGrade;
+    await quizzesClient.updateQuiz({...curQuiz, latestScore: latestScore});
+    dispatch(updateQuiz({...curQuiz, latestScore: latestScore}));
     navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Details`);
   };
   useEffect(() => {
     fetchQuestions();
     fetchPreviousQuizGrade();
+    fetchQuiz();
   }, []);
 
 
@@ -68,7 +84,10 @@ export default function QuizPreview() {
       <h3>Questions</h3><hr/>
 
       <div className="mb-3">
-        <p>Question { questionIndex+1 }: { questions && questionIndex<questionNumber && questions[questionIndex]?.title }</p>
+        <div className="d-flex mb-3">
+          <div className="me-2"><b>Question { questionIndex+1 }: { questions && questionIndex<questionNumber && questions[questionIndex]?.title }</b></div>
+          { previousQuizGrade?.user && (fetchPreviousGradeForQuestion(questions && questionIndex<questionNumber && questions[questionIndex]?._id) > 0 ? (<GreenCheckmark />) : (<RedXMark />)) }
+        </div>
         <p>{ questions && questionIndex<questionNumber && questions[questionIndex]?.description }</p>
       </div><br/><hr/>
       
@@ -130,14 +149,15 @@ export default function QuizPreview() {
 
 
         <hr/>
-        <div>
+        
+        { previousQuizGrade?.user && (<div>
           <p>
               Previous Answer : {fetchPreviousAnswerForQuestion(questions && questionIndex<questionNumber && questions[questionIndex]?._id)}
           </p>
           <p>
               Grade : {fetchPreviousGradeForQuestion(questions && questionIndex<questionNumber && questions[questionIndex]?._id)}
           </p>
-        </div>
+        </div>)}
         
 
 
@@ -152,9 +172,11 @@ export default function QuizPreview() {
       <button id="wd-next-btn" onClick={ () => {setQuestionIndex( (questionIndex+1) % questionNumber)} } className="btn btn-secondary me-1 float-end">
         Next</button><br/><br/><hr />
       
-      <button id="wd-submit-btn" onClick={submit} className="btn btn-secondary me-1 float-end">
-        Submit Quiz</button><br/><br/><hr />
-
+      {(!previousQuizGrade.user || ( quiz?.howManyAttempts && previousQuizGrade?.attempts && previousQuizGrade?.attempts < quiz?.howManyAttempts )) 
+        && (<button id="wd-submit-btn" onClick={submit} className="btn btn-secondary me-1 float-end">
+        Submit Quiz</button>)}
+      
+      <br/><br/><hr />
 
       <div className="fs-5 mb-3">
         Questions:

@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import * as quizzesClient from "../client";
 import * as questionsClient from "./client";
 import { FaPlus, FaTrash } from "react-icons/fa";
+import Editor, { EditorProvider } from "react-simple-wysiwyg";
 
 export default function QuestionEditor() {
   const { questionid } = useParams();
@@ -103,13 +104,14 @@ export default function QuestionEditor() {
       </div>
       
       <div className="mb-3">
-        <label htmlFor="wd-question-description" className="form-label fs-5">
-            Question Description:</label>
-        <textarea id="wd-question-description" className="form-control" value={ question?.description ? question.description : "" } cols={45} rows={10} 
-          onChange={ (e) => setQuestion({ ...question, description: e.target.value }) } >
-            The question is available online
-        </textarea>
-      </div><br/>
+        Question Description
+      </div>
+      <div className="mb-3">
+        <EditorProvider>
+          <Editor id="wd-question-description" containerProps={{ style: { height: '200px', resize: 'both' } }} value={ question?.description ? question.description : "" } 
+            onChange={ (e) => setQuestion({ ...question, description: e.target.value }) } />
+        </EditorProvider>
+      </div>
 
       <div className="mb-3 fs-5">
         Answers:

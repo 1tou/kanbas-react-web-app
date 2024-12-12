@@ -80,6 +80,11 @@ export const createQuizGrade = async (userId: string, quizId: string, answers: a
   return response.data;
 };
 
+export const findQuizzesForUser = async (userId: string, courseId: string) => {
+  const response = await axiosWithCredentials.get(`${USERS_API}/${userId}/courses/${courseId}/quizzes`);
+  return response.data;
+};
+
 /*
 export const findEnrollmentsForUser = async (userId: string) => {
   const response = await axios

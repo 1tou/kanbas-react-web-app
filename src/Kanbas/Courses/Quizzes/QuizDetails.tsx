@@ -1,7 +1,7 @@
 import { useParams } from "react-router";
 //import { quizzes } from "../../Database";
 import { Link, useNavigate } from "react-router-dom";
-import { addQuiz, deleteQuiz, updateQuiz }
+import { addQuiz, deleteQuiz, setQuizzes, updateQuiz }
   from "./reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
@@ -18,34 +18,38 @@ export default function QuizDetails() {
   const { quizzes } = useSelector((state: any) => state.quizzesReducer);
   const [previousQuizGrade, setPreviousQuizGrade] = useState<any>({});
   const { currentUser } = useSelector((state: any) => state.accountReducer);
+  const dispatch = useDispatch();
 
   const fetchQuiz = () => {
     setQuiz(quizzes.find((quiz: any) => quiz._id === quizid));
   };
-
+  const fetchQuizzes = async () => {
+    const quizzes = await coursesClient.findQuizzesForCourse(cid as string);
+    dispatch(setQuizzes(quizzes));
+  };
   const fetchPreviousQuizGrade = async () => {
     const previousQuizGrade = await userClient.findQuizGradeForUser(currentUser._id, quizid as string);
     if(previousQuizGrade)
         setPreviousQuizGrade(previousQuizGrade);
+    else
+        setPreviousQuizGrade({});
   };
 
-  useEffect(() => { fetchQuiz(); fetchPreviousQuizGrade(); }, []);
+  useEffect(() => { fetchQuizzes(); fetchQuiz(); fetchPreviousQuizGrade(); }, []);
 
   return (
     <div id="wd-quizz-details" className="container">
 
       <ProtectedRouteFaculty><div className="mb-5 d-flex justify-content-center">
-        { (!previousQuizGrade || (previousQuizGrade && previousQuizGrade?.attempts < quiz.multipleAttempts)) && (<Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
-            Preview</Link>)}
+        <Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
+            Preview</Link>
         <Link id="wd-edit-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Editor`} className="btn btn-secondary me-1 float-end">
             Edit</Link>
       </div><hr /></ProtectedRouteFaculty>
 
       <ProtectedRouteNotFaculty><div className="mb-5 d-flex justify-content-center">
-        { (!previousQuizGrade || (previousQuizGrade && previousQuizGrade?.attempts < quiz.multipleAttempts)) && (<Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
-            Take</Link>)}
-        <Link id="wd-edit-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Editor`} className="btn btn-secondary me-1 float-end">
-            Edit</Link>
+        <Link id="wd-preview-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Preview/Questions`} className="btn btn-secondary me-1 float-end">
+            Take</Link>
       </div><hr /></ProtectedRouteNotFaculty>
       
       <div className="mb-4">
@@ -63,63 +67,73 @@ export default function QuizDetails() {
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
+        <div className="me-3"><b>Published</b></div>
+        <div>{quiz.published ? "True" : "False"}</div>
+      </div>
+
+      <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Assignment Group</b></div>
         <div>{quiz.group}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Shuffle Answers</b></div>
-        <div>{quiz.shuffleAnswers}</div>
+        <div>{quiz.shuffleAnswers ? "True" : "False"}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Time Limit</b></div>
-        <div>{quiz.timeLimit}</div>
+        <div>{quiz.timeLimit} Minutes</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Multiple Attempts</b></div>
-        <div>{quiz.multipleAttempts}</div>
+        <div>{quiz.multipleAttempts ? "True" : "False"}</div>
+      </div>
+      
+      <div className="mb-2 fs-5 d-flex justify-content-center">
+        <div className="me-3"><b>How Many Attempts</b></div>
+        <div>{quiz.howManyAttempts}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>View Responses</b></div>
-        <div>{quiz.type}</div>
+        <div>{""}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Show Correct Answers</b></div>
-        <div>{quiz.showCorrectAnswers}</div>
+        <div>{quiz.showCorrectAnswers ? "True" : "False"}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>One Question at a time</b></div>
-        <div>{quiz.oneQuestionAtATime}</div>
+        <div>{quiz.oneQuestionAtATime ? "True" : "False"}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Require Respondus Lockdown</b></div>
-        <div>{quiz.type}</div>
+        <div>{""}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Browser</b></div>
-        <div>{quiz.type}</div>
+        <div>{""}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Required to view Quiz Results</b></div>
-        <div>{quiz.type}</div>
+        <div>{""}</div>
       </div>
 
       <div className="mb-2 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Webcam Required</b></div>
-        <div>{quiz.webcamRequired}</div>
+        <div>{quiz.webcamRequired ? "True" : "False"}</div>
       </div>
 
       <div className="mb-5 fs-5 d-flex justify-content-center">
         <div className="me-3"><b>Lock Questions After Answering</b></div>
-        <div>{quiz.type}</div>
+        <div>{quiz.lockQuestionsAfterAnswering ? "True" : "False"}</div>
       </div><br/>
 
       <div>
@@ -150,7 +164,7 @@ export default function QuizDetails() {
 
       <div className="mb-2 fs-5 d-flex justify-content-between">
         <div className="me-3"><b>{quiz.dueDate}</b></div>
-        <div className="me-3"><b>{quiz.assignTo}</b></div>
+        <div className="me-3"><b>{ ((new Date(Date.parse(quiz.availableUntil)).getTime() - new Date(Date.parse(quiz.availableFrom)).getTime())/1000/(24*60*60)) } Days</b></div>
         <div className="me-3"><b>{quiz.availableFrom}</b></div>
         <div className="me-3"><b>{quiz.availableUntil}</b></div>
       </div><hr/>

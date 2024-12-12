@@ -7,7 +7,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { useState, useEffect } from "react";
 import * as coursesClient from "../client";
 import * as quizzesClient from "./client";
-import Editor from 'react-simple-wysiwyg';
+import Editor, { EditorProvider } from 'react-simple-wysiwyg';
 
 export default function QuizEditor() {
   const { quizid } = useParams();
@@ -31,7 +31,7 @@ export default function QuizEditor() {
   const fetchQuiz = () => {
     //if (quizid === '0') return navigate(`/Kanbas/Courses/${cid}/Quizzes/${new Date().getTime().toString()}`);
     if ( quizid === "create" )
-      setQuiz({ _id: Date.now().toString(), title: "Edit title", course: cid });
+      setQuiz({ _id: Date.now().toString(), title: "Edit title", course: cid, points: 0, howManyAttempts: 1, published: false, multipleAttempts: false });
     else
       setQuiz(quizzes.find((quiz: any) => quiz._id === quizid));
   };
@@ -45,8 +45,20 @@ export default function QuizEditor() {
     if(quizid==="create")
       navigate(`/Kanbas/Courses/${cid}/Quizzes`);
     else
-      navigate(`/Kanbas/Courses/${cid}/Quizzes`);
-      //navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Details`);
+      navigate(`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Details`);
+      //navigate(`/Kanbas/Courses/${cid}/Quizzes`);
+      
+  };
+  const saveAndPublish = async () => {
+    if (quizid === "create"){
+        if (!cid) return;
+        const newQuiz = await coursesClient.createQuizForCourse(cid, { ...quiz, published: true });
+        dispatch(addQuiz(newQuiz));
+    }
+    else{
+      saveQuiz({ ...quiz, published: true });
+    }
+    navigate(`/Kanbas/Courses/${cid}/Quizzes`);
   };
   useEffect(() => { fetchQuiz(); }, []);
 
@@ -69,18 +81,18 @@ export default function QuizEditor() {
       <div className="mb-3">
         <label htmlFor="wd-title" className="form-label">
           Quiz Title</label>
-        <textarea className="form-control" id="wd-title" value={ quiz && quiz.title } onChange={(e) => setQuiz({ ...quiz, title: e.target.value }) }
+        <textarea className="form-control" id="wd-title" value={ quiz?.title ? quiz.title : "" } onChange={(e) => setQuiz({ ...quiz, title: e.target.value }) }
                   rows={3}></textarea>
       </div>
 
       <div className="mb-3">
-        <textarea id="wd-description" className="form-control" value={ quiz?.description ? quiz.description : "Edit description" } cols={45} rows={10} onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } >
-          The quiz is available online
-          Submit a link to the landing page of your Web application running on Netlify.
-          The landing page should include the following: Your full name and section Links to each of the lab quizzes Link to the Kanbas application Links to all relevant source code repositories The Kanbas application should include a link to navigate back to the landing page.
-        </textarea>
-        <Editor id="wd-description" value={quiz?.description ? quiz.description : "Edit description"} 
-          onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } />
+        Quiz Description
+      </div>
+      <div className="mb-3">
+        <EditorProvider>
+          <Editor id="wd-description" containerProps={{ style: { height: '300px', resize: 'both' } }} value={ quiz?.description ? quiz.description : "Edit description" } 
+            onChange={(e) => setQuiz({ ...quiz, description: e.target.value }) } />
+        </EditorProvider>
       </div>
 
       <div>
@@ -94,11 +106,76 @@ export default function QuizEditor() {
         </div>
 
         <div className="mb-3 row">
-          <label htmlFor="wd-attempts" className="col-sm-2 col-form-label">
-            Multiple Attempts</label>
+          <label htmlFor="wd-timelimit" className="col-sm-2 col-form-label">
+            Time Limit {" (minutes)"}</label>
           <div className="col-sm-10 col-md-4">
-            <input id="wd-attempts" className="form-control" value={ quiz?.multipleAttempts } onChange={(e) => setQuiz({ ...quiz, multipleAttempts: e.target.value })} />
+            <input id="wd-timelimit" className="form-control" value={ quiz?.timeLimit } onChange={(e) => setQuiz({ ...quiz, timeLimit: e.target.value })} />
           </div>
+        </div>
+
+        <div className="mb-3 row">
+          <label htmlFor="wd-accessCode" className="col-sm-2 col-form-label">
+            Access Code </label>
+          <div className="col-sm-10 col-md-4">
+            <input id="wd-accessCode" className="form-control" value={ quiz?.accessCode } onChange={(e) => setQuiz({ ...quiz, accessCode: e.target.value })} />
+          </div>
+        </div>
+
+        <div className="mb-3 row">
+          <label htmlFor="wd-howmanyattempts" className="col-sm-2 col-form-label">
+            How Many Attempts</label>
+          <div className="col-sm-10 col-md-4">
+            <input id="wd-howmanyattempts" className="form-control" value={ quiz?.howManyAttempts } 
+            onChange={(e) => { quiz?.multipleAttempts ? setQuiz({ ...quiz, howManyAttempts: e.target.value }) : setQuiz({ ...quiz, howManyAttempts: 1 }) } } />
+          </div>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="multipleAttempts" checked={ quiz?.multipleAttempts } 
+            onChange={ (e) => { setQuiz({ ...quiz, multipleAttempts: e.target.checked }); } }/>
+          <label className="form-check-label" htmlFor="multipleAttempts">
+            Multiple Attempts
+          </label>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="shuffleAnswers" checked={ quiz?.shuffleAnswers } 
+            onChange={ (e) => setQuiz({ ...quiz, shuffleAnswers: e.target.checked }) }/>
+          <label className="form-check-label" htmlFor="shuffleAnswers">
+            Shuffle Answers
+          </label>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="showCorrectAnswers" checked={ quiz?.showCorrectAnswers } 
+            onChange={ (e) => setQuiz({ ...quiz, showCorrectAnswers: e.target.checked }) }/>
+          <label className="form-check-label" htmlFor="showCorrectAnswers">
+            Show Correct Answers
+          </label>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="oneQuestionAtATime" checked={ quiz?.oneQuestionAtATime } 
+            onChange={ (e) => setQuiz({ ...quiz, oneQuestionAtATime: e.target.checked }) }/>
+          <label className="form-check-label" htmlFor="oneQuestionAtATime">
+            One Question at a Time
+          </label>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="webcamRequired" checked={ quiz?.webcamRequired } 
+            onChange={ (e) => setQuiz({ ...quiz, webcamRequired: e.target.checked }) }/>
+          <label className="form-check-label" htmlFor="webcamRequired">
+            Webcam Required
+          </label>
+        </div>
+
+        <div className="form-check form-switch mb-3">
+          <input className="form-check-input" type="checkbox" id="lockQuestionsAfterAnswering" checked={ quiz?.lockQuestionsAfterAnswering } 
+            onChange={ (e) => setQuiz({ ...quiz, lockQuestionsAfterAnswering: e.target.checked }) }/>
+          <label className="form-check-label" htmlFor="lockQuestionsAfterAnswering">
+            Lock Questions After Answering
+          </label>
         </div>
 
         {/* Complete on your own */}
@@ -112,6 +189,20 @@ export default function QuizEditor() {
                 QUIZZES</option>
               <option value="Assignments">Assignments</option>
               <option value="Project">Project</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mb-3 row">
+          <label htmlFor="wd-quiz-type" className="col-sm-2 col-form-label">
+            Quiz Type</label>
+          <div className="col-sm-10 col-md-4">
+            <select id="wd-quiz-type" className="form-select" value={ quiz?.type ? quiz.type : "Graded Quiz" } onChange={(e) => setQuiz({ ...quiz, type: e.target.value })} >
+              <option selected value="Graded Quiz">
+                Graded Quiz</option>
+              <option value="Practice Quiz">Practice Quiz</option>
+              <option value="Graded Survey">Graded Survey</option>
+              <option value="Ungraded Survey">Ungraded Survey</option>
             </select>
           </div>
         </div>
@@ -214,9 +305,11 @@ export default function QuizEditor() {
         
       <br/>
       <hr />
+      <button id="wd-save-publish-btn" onClick={saveAndPublish} className="btn btn-danger me-1 float-end">
+        Save and Publish</button>
       <button id="wd-save-btn" onClick={save} className="btn btn-danger me-1 float-end">
         Save</button>
-      { quizid !== "create" && (<Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
+      { quizid !== "create" && (<Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes/${quizid}/Details`} className="btn btn-secondary me-1 float-end">
         Cancel</Link>)}
       { quizid === "create" && (<Link id="wd-cancel-btn" to={`/Kanbas/Courses/${cid}/Quizzes`} className="btn btn-secondary me-1 float-end">
         Cancel</Link>)}

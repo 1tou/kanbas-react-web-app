@@ -14,7 +14,7 @@ import { useParams } from "react-router";
 import { Link } from 'react-router-dom';
 import { setQuestions, addQuestion, deleteQuestion, updateQuestion }
   from "./reducer";
-//import { addQuiz, deleteQuiz, updateQuiz } from "../reducer";
+import { addQuiz, deleteQuiz, updateQuiz } from "../reducer";
 import { useSelector, useDispatch } from "react-redux";
 import { FaTrash } from "react-icons/fa";
 import ProtectedRouteFaculty from '../../../Account/ProtectedRouteFaculty';
@@ -27,8 +27,8 @@ export default function Questions() {
   const { quizid } = useParams();
   const [chosenQuestion, setChosenQuestion] = useState<any>({});
   const { questions } = useSelector((state: any) => state.questionsReducer);
-  //const { quizzes } = useSelector((state: any) => state.quizzesReducer);
-  //const [quiz, setQuiz] = useState<any>({});
+  const { quizzes } = useSelector((state: any) => state.quizzesReducer);
+  const [quiz, setQuiz] = useState<any>({});
   const dispatch = useDispatch();
   const removeQuestion = async (questionId: string) => {
     await questionsClient.deleteQuestion(questionId);
@@ -38,25 +38,28 @@ export default function Questions() {
     const questions = await quizzesClient.findQuestionsForQuiz(quizid as string);
     dispatch(setQuestions(questions));
   };
-  /*
+  
   const updatePointsForQuiz = async () => {
-    const questions = await quizzesClient.findQuestionsForQuiz(quizid as string);
-    dispatch(setQuestions(questions));
+    const newQuestions = await quizzesClient.findQuestionsForQuiz(quizid as string);
+    dispatch(setQuestions(newQuestions));
     
-    setQuiz(quizzes.find((quiz: any) => quiz._id === quizid));
+    let questionNumbers = newQuestions.length;
+    const curQuiz = quizzes.find((quiz: any) => quiz._id === quizid);
     let totalPoints = 0;
-    if(questions){
-      for (let i = 0; i < questions.length; i++) {
-        if(questions[i]?.points){
-          totalPoints += questions[i]?.points;
+
+    if(newQuestions){
+      for (let i = 0; i < newQuestions.length; i++) {
+        if(newQuestions[i]?.points){
+          totalPoints += newQuestions[i]?.points;
     }}}
-    setQuiz({ ...quiz, points: totalPoints })
-    await quizzesClient.updateQuiz(quiz);
-    dispatch(updateQuiz(quiz));
-  };*/
+
+    await quizzesClient.updateQuiz({ ...curQuiz, points: totalPoints, questionNumbers: questionNumbers });
+    dispatch(updateQuiz({ ...curQuiz, points: totalPoints, questionNumbers: questionNumbers }));
+  };
+
   useEffect(() => {
-    fetchQuestions();
-    //updatePointsForQuiz();
+    //fetchQuestions();
+    updatePointsForQuiz();
   }, []);
   return (
     <div id="wd-questions">
@@ -89,7 +92,7 @@ export default function Questions() {
               Questions
               <div className="float-end">
                 <button id="wd-question-total" className="btn btn-secondary border-dark rounded-pill me-2">
-                  40% of Total</button>
+                </button>
                 <BsPlus className="fs-2" />
                 <IoEllipsisVertical className="fs-4" />
               </div>
@@ -106,13 +109,13 @@ export default function Questions() {
                         <BsGripVertical className="me-2 fs-3" />
                         <MdEditNote className="me-2 fs-3 text-success" />
                       </div>
-                      <div className="me-2 fs-6">
-                        <ProtectedRouteFaculty><a className="wd-question-link"
+                      <div className="me-2 fs-6 d-flex justify-content-center">
+                        <ProtectedRouteFaculty><a className="wd-question-link me-2"
                           href={`#/Kanbas/Courses/${cid}/Quizzes/${quizid}/Questions/${question._id}`}>
                           <b>{question.title}</b>
                         </a></ProtectedRouteFaculty>
                         <ProtectedRouteNotFaculty><b>{question.title}</b></ProtectedRouteNotFaculty>
-                        <br /><span className="text-danger">Multiple Modules</span> | <b>Not available Until</b> { question?.availableFrom ? question.availableFrom : "2024-05-06" } | <b>Due</b> { question?.dueDate ? question.dueDate : "2024-05-13" } | { question?.points ? question.points : 100 } pts
+                        <span className="">{ question?.points ? question.points : 0 } pts</span>
                       </div>
                       <div className="">
                         <ProtectedRouteFaculty><FaTrash className="text-danger me-3" onClick={() => setChosenQuestion({ _id: question._id, title: question.title, quiz: quizid })} 
